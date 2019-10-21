@@ -53,6 +53,7 @@
       </div>
 
       <!--  其他代码... -->
+      <FlightsAside></FlightsAside>
     </el-row>
   </section>
 </template>
@@ -61,6 +62,7 @@
 import FlightsListHead from "@/components/air/flightsListHead.vue";
 import FlightsFilters from "@/components/air/flightsFilters.vue";
 import FlightsItem from "@/components/air/flightsItem.vue";
+import FlightsAside from "@/components/air/flightsAside.vue";
 
 export default {
   // 其他代码...
@@ -68,7 +70,8 @@ export default {
   components: {
     FlightsListHead,
     FlightsFilters,
-    FlightsItem
+    FlightsItem,
+    FlightsAside
   },
   data() {
     return {
@@ -93,6 +96,10 @@ export default {
   watch: {
     change(newdata, olddata) {
       this.getFlightsItems();
+    },
+    //监听地址栏参数的变化
+    $route() {
+        location.reload();
     }
   },
   mounted() {

@@ -41,7 +41,8 @@
                         <el-col :span="3" class="choose-button">
                             <el-button 
                             type="warning" 
-                            size="mini">
+                            size="mini"
+                            @click.native="setFlight(item.seat_xid)">
                             选定
                             </el-button>
                             <p>剩余：{{item.discount}}</p>
@@ -83,6 +84,17 @@ export default {
             return `${hour}时:${minute}分`
         },
     },
+    methods:{
+        setFlight(seat_xid) {
+            this.$router.push({
+                path:'/air/order',
+                query:{
+                    seat_xid,
+                    id:this.data.id
+                }
+            });
+        }
+    }
 }
 </script>
 

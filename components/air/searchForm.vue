@@ -152,13 +152,13 @@ export default {
             this.form.departCode=this.form.destCode;
             this.form.destCity=midCity;
             this.form.destCode=midCode;
-            console.log(this.form)
 
         },
 
         // 提交表单是触发
         handleSubmit(){
-           console.log(this.form)
+          //保存购票记录
+          this.$store.commit('history/setForm',this.form);
            let rules=[{
                 message:'请选择出发城市',
                 value:this.form.departCity },
