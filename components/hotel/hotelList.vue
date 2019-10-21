@@ -1,14 +1,18 @@
 <template>
   <div>
     <el-row>
-      <el-col :span="8">
+      <nuxt-link :to="'/hotel/post?id='+hotel.id">
+        <el-col :span="8">
         <div class="img">
           <img :src="hotel.photos" alt="">
         </div>
       </el-col>
+      </nuxt-link>
       <el-col :span="10" class="document">
         <div>
+          <nuxt-link :to="'/hotel/post?id='+hotel.id">
           <p class="hotel-name">{{hotel.name}}</p>
+          </nuxt-link>
           <p class="hotel-desc">
            {{hotel.alias}}
             <i class="iconfont iconhuangguan" v-for="item in  hotel.hotellevel ?hotel.hotellevel.level : []" :key="item" ></i>
@@ -17,8 +21,12 @@
             <el-row class="comment">
               <el-col :span="12">
                 <div class="grid-content bg-purple">
-                  <i class="el-rate__icon el-icon-star-on" 
-                    v-for="item in 5" :key="item"></i>
+                  <span v-for="item in 5" :key="item" class="stars" >
+                    <i class="el-rate__icon el-icon-star-on"></i>
+                   <span v-if="Math.ceil(hotel.stars)==item && hotel.stars%1" class="over-star">
+                      <i class="el-rate__icon el-icon-star-on abs yellow" ></i>
+                   </span>
+                  </span>
                   {{hotel.stars}}分
                 </div>
               </el-col>
@@ -69,23 +77,21 @@ export default {
     }
   },
   mounted(){
-    console.log(123,this.hotel)
     //是小数的情况
-    if(this.hotel.stars%1){
-        
-    }
+
   }
   
 };
 </script>
 
-<style lang="less">
+<style scoped lang="less">
 * {
   color: #666;
 }
 .yellow {
-  color: #f90;
+  color: #f90 !important;
 }
+
 .img {
   width: 320px;
   height: 210px;
@@ -120,5 +126,25 @@ export default {
 .link-to-brand {
   padding: 10px;
   border-bottom: 1px solid #ddd;
+}
+//星星评论
+.stars {
+  position: relative;
+   color:#ddd;
+  .over-star {
+     position: absolute;
+     top:3px;
+    left: 0;
+     width:33%;
+     height:100%;
+     overflow: hidden;
+     z-index:2;
+    .abs {
+    position: absolute;
+    top:0;
+    left: 0;
+   
+  }
+  }
 }
 </style>
