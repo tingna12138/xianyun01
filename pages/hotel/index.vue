@@ -11,15 +11,7 @@
       <el-row>
         <!-- 选择城市 -->
         <el-col :span="5">
-          <el-autocomplete
-            class="inline-input"
-            v-model="cityname"
-            :fetch-suggestions="querySearch"
-            placeholder="请输入城市名"
-            :trigger-on-focus="false"
-            @select="handleSelect"
-            @blur="loseFocus"
-          ></el-autocomplete>
+          <CItyAutoComp @getCity="getCity"></CItyAutoComp>
         </el-col>
 
         <!-- 入住时间段 -->
@@ -89,11 +81,44 @@
     <div class="scen-descr">
       <el-row>
         <el-col :span="14">
+          <!-- 区域 -->
           <el-row class="left-row">
             <el-col :span="3">区域：</el-col>
-            <el-col
-              :span="21"
-            >北京，你想要的都能在这找到。博古通今，兼容并蓄，天下一城，如是帝都。 景点以故宫为中心向四处辐射；地铁便宜通畅，而且覆盖绝大多数景点。 由于早上有天安门升旗仪式，所以大多数人选择在天安门附近住宿。</el-col>
+            <el-col :span="21">
+              <p :class="{'limit-h':flag}">
+                 <span class="all">全部</span>  &nbsp; &nbsp;&nbsp;
+               <span v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]" :key="index"> 
+                 {{item.name}} &nbsp; &nbsp;&nbsp;
+              </span>
+              </p>
+              <p>
+                <span class="el-icon-d-arrow-right yellow" @click="moreSceni"></span>
+                等 {{ citydesc.length>0 ? citydesc[0].scenics.length : ''}} 个区域
+              </p>
+            </el-col>
+          </el-row>
+          <!-- 攻略 -->
+          <el-row class="left-row">
+            <el-col :span="3">攻略：</el-col>
+            <el-col :span="21">
+              <p :class="{'limit-h':flag}">
+                 <span class="all">全部</span>  &nbsp; &nbsp;&nbsp;
+               <span v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]" :key="index"> 
+                 {{item.name}} &nbsp; &nbsp;&nbsp;
+              </span>
+              </p>
+              <p>
+                <span class="el-icon-d-arrow-right yellow" @click="moreSceni"></span>
+                等 {{ citydesc.length>0 ? citydesc[0].scenics.length : ''}} 个区域
+              </p>
+            </el-col>
+          </el-row>
+          <!-- 均价 -->
+          <el-row class="left-row">
+            <el-col :span="3">均价:</el-col>
+            <el-col :span="21">
+              这是均价部分
+            </el-col>
           </el-row>
         </el-col>
         <!-- 酒店地图 -->
@@ -144,43 +169,56 @@
     <!-- 酒店列表开始 -->
     <HotelList class="hotel-list" v-for="(item,index) in hotellist" :key="index" :hotel="item"></HotelList>
 
+    <!-- //没有数据时显示 -->
+    <div v-if="hotellist.length==0"> 没有满足条件的酒店数据</div>
+
     <!-- 分页标签 -->
     <!-- 页码尺寸默认是10 -->
     <el-pagination small layout="prev, pager, next" 
-       :total="hotellist.length"></el-pagination>
+       :total="total" @current-change="changePage"></el-pagination>
   </div>
 </template>
 
 <script>
 import HotelList from "@/components/hotel/hotelLIst.vue";
+import CItyAutoComp from "@/components/cityAutoComp";
 
 export default {
   components: {
-    HotelList
+    HotelList,
+    CItyAutoComp
   },
   data() {
     return {
       /**
        * hotellist:存放所有酒店数据
+         total:收录的酒店总数
        * hoteloptions:酒店选项
        * cityInfo:城市列表
        * form:筛选城市数据的参数集合
        * options:入住人数选项的集合
+         citydesc:城市介绍
        */
 
       hotellist: [],
+      total:0,
       hoteloptions: {},
       cityInfo: [],
-      cityname: "",
+      cityname: "南京市",
+      citydesc:[],
+      enterTime:null,
+      leftTime:null,
       form: {
-        city: "",
-        enterTime: "",
-        person: 1,
-        price_in: 4000,
-        hotellevel: 1,
-        hoteltype: 1,
-        hotelbrand: 1,
-        hotelasset: 1
+        enterTime:null,
+        leftTime:null,
+        city: NaN,
+        price_lt: NaN,
+        hotellevel_in: NaN,
+        hoteltype_in: NaN,
+        hotelbrand_in:NaN,
+        hotelasset_in:NaN,
+        _limit:10,
+        _start:0
       },
       options: [
         {
@@ -212,6 +250,8 @@ export default {
           label: "7"
         }
       ],
+      //是否查看更多城市介绍
+      flag:true,
       //住宿时间段
       livetime: "",
       //双向绑定旅客人数的输入框标签
@@ -227,6 +267,33 @@ export default {
       visible: false
     };
   },
+  watch:{
+    form:{
+      deep:true,
+      handler(newdata){
+        console.log('form',this.form)
+        var option={}
+         for(var key in this.form) {
+             if(this.form[key] ) {
+              option[key]=this.form[key]
+             }
+         }
+           console.log(option)
+         this.$axios({
+         //获取酒店数据
+         url: "/hotels?",
+        method: "get",
+        params:option
+        }).then(res => {
+      if (res.status == 200) {
+        this.hotellist = res.data.data;
+        this.total=res.data.total
+        console.log('酒店列表',this.hotellist);
+      }
+    });
+      }
+    }
+  },
   mounted() {
     this.$axios({
       //获取酒店数据
@@ -235,7 +302,8 @@ export default {
     }).then(res => {
       if (res.status == 200) {
         this.hotellist = res.data.data;
-        console.log(this.hotellist);
+        this.total=res.data.total
+        console.log('酒店列表',this.hotellist);
       }
     });
     //获取酒店选项
@@ -256,7 +324,16 @@ export default {
         }
       }
     });
-
+    
+    //获取城市景点介绍  默认是南京
+    this.$axios({
+      url:'/cities?name=南京市',
+      method:'get'
+    }).then(res=>{
+      console.log('城市介绍',res.data.data);
+      this.citydesc=res.data.data;
+    })
+  
     //酒店地图
     window.onLoad = () => {
       var map = new AMap.Map("container", {
@@ -298,48 +375,26 @@ export default {
   methods: {
     //点击 查看价格  触发
     onSubmit() {
-      console.log(this.form);
+     this.form.enterTime=this.enterTime;
+     this.form.leftTime=this.leftTime;
+    },
+    //查看更多的城市风景
+    moreSceni(){
+       this.flag=!this.flag;
     },
     //选择城市输入框获得焦点时触发
     //value是输入框中的值
-    querySearch(value, cb) {
-      if (!value) {
-        cb([]);
-      } else {
-        this.$axios({
-          url: "/airs/city",
-          emthod: "get",
-          params: {
-            name: value
-          }
-        }).then(res => {
-          res.data.data.forEach(ele => {
-            //将城市末尾的`市`替换掉
-            ele.name = ele.name.replace(/市$/g, "");
-            ele.value = ele.name;
-          });
-          this.cityInfo = res.data.data;
-          cb(res.data.data);
-        });
-      }
+    getCity(city) {
+      console.log('city',city)
+       this.form.city=city;
     },
-
-    //选择城市时触发
-    handleSelect(item) {
-      this.form.city = item.id;
-    },
-
-    // 目标城市输入框获得失去焦点时触发
-    loseFocus() {
-      if (this.cityInfo.length > 0) {
-        this.form.city = this.cityInfo[0].id;
-        this.cityname = this.cityInfo[0].name;
-      }
-    },
+    
+   
     //去顶选定的时间后触发
     //返回的是一个数组：入住时间和离开时间
     confirLiveTime(item) {
-      this.form.enterTime = item[0];
+      this.enterTime = item[0];
+      this.leftTime=item[1]
     },
     //改变选择器的数据时，触发
     changeAdultNum(item) {
@@ -348,26 +403,26 @@ export default {
 
     //过滤器滑动条
     formatTooltip(val) {
-      return val / 100;
+       return val/100
     },
 
     //滑动条的值发生变化
     //item是改变后的值
     changePrice(item) {
-      this.form.price_in = item;
+      this.form.price_lt = item;
     },
     //下拉列表的数据发生变化
     command(item) {
       var arr = item.split(":");
+      console.log('arr',arr);
       if (arr[0] == "levels") {
-        console.log(456);
-        this.form.hotellevel = +arr[1];
-      } else if (key == "brands") {
-        this.form.hotelbrand = +arr[1];
-      } else if (key == "assets") {
-        this.form.hotelasset = +arr[1];
-      } else if (key == "types") {
-        this.form.hoteltype = +arr[1];
+        this.form.hotellevel_in = +arr[1];
+      } else if (arr[0] == "brands") {
+        this.form.hotelbrand_in = +arr[1];
+      } else if (arr[0] == "assets") {
+        this.form.hotelasset_in = +arr[1];
+      } else if (arr[0] == "types") {
+        this.form.hoteltype_in = +arr[1];
       }
     },
 
@@ -378,12 +433,22 @@ export default {
           0
         );
       };
+    },
+    changePage(item) {
+      this.form._start=item-1;
     }
   }
 };
 </script>
 
 <style scoped lang="less">
+.limit-h {
+  height: 42px;
+  overflow: hidden;
+}
+.yellow {
+  color:#ffa500;
+}
 /deep/.custom-content-marker {
   position: relative;
   width: 25px;
@@ -495,6 +560,13 @@ export default {
     padding-right: 20px;
     font-size: 14px;
     color: #666666;
+    .all {
+      padding:2px;
+      color:#777;
+      font-size: 12px;
+      background: #ddd;
+      border-radius: 2px;
+    }
   }
   .rigth-row-col {
     height: 260px;

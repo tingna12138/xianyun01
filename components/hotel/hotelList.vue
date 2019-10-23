@@ -1,6 +1,6 @@
 <template>
   <div>
-    <el-row>
+    <el-row v-if="hotel">
       <nuxt-link :to="'/hotel/post?id='+hotel.id">
         <el-col :span="8">
         <div class="img">
@@ -21,8 +21,8 @@
             <el-row class="comment">
               <el-col :span="12">
                 <div class="grid-content bg-purple">
-                  <span v-for="item in 5" :key="item" class="stars" >
-                    <i class="el-rate__icon el-icon-star-on"></i>
+                  <span v-for="item in 5" :key="item" class="stars">
+                    <i class="el-rate__icon el-icon-star-on" :class="{'yellow':item<=hotel.stars}"></i>
                    <span v-if="Math.ceil(hotel.stars)==item && hotel.stars%1" class="over-star">
                       <i class="el-rate__icon el-icon-star-on abs yellow" ></i>
                    </span>
@@ -65,6 +65,7 @@
         </div>
       </el-col>
     </el-row>
+
   </div>
 </template>
 
@@ -130,7 +131,9 @@ export default {
 //星星评论
 .stars {
   position: relative;
-   color:#ddd;
+   * {
+     color:#ddd;
+   }
   .over-star {
      position: absolute;
      top:3px;
