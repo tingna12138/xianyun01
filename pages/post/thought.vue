@@ -11,38 +11,48 @@
       </div>
       <div class="city">
         选择城市
+       <CItyAutoComp @getCity="getCity" :cityname="cityname"></CItyAutoComp>
       </div>
       <div class="send">
         <el-button :plain="true" @click="sendCreated">提交</el-button>&nbsp;&nbsp;
         或者 &nbsp;&nbsp;
-        <span class="yellow">保存到草稿箱</span>
+        <span class="yellow keep-draft" @click="keepDraft">保存到草稿箱</span>
       </div>
     </div>
     <div class="draft fr">
       <p class="title">草稿箱 (0)</p>
-      <div class="cont clearfix">
-        <p class="docu fl">我邮寄嘎乡就是这个，请看凯南吧，希望对你有用</p>
-        <span class="el-icon-edit"></span>
+      <div class="cont clearfix"
+        v-for="(item,index) in $store.state.post.draft" 
+        :key="index">
+        <p class="docu fl" 
+           @click="editDraft(index)" >
+           {{item.title}} 
+          <span class="el-icon-edit"></span>
+        </p> 
+        <span class="del fr" @click="deleteDraft(index)">删除</span>
       </div>
-      <div class="date">2019-10-22</div>
+      <div class="date" >2019-10-22</div>
     </div>
   </div>
 </template>
 
 <script>
+import CItyAutoComp from "@/components/cityAutoComp";
+
 import "quill/dist/quill.snow.css";
 let VueEditor;
 if (process.browser) {
   VueEditor = require("vue-word-editor").default;
 }
 
-// import VueEditor from '@/components/post/editor'
 export default {
   data() {
     return {
+      cityname:'',
       title: "",
       city: "",
       tip: "",
+      draft:[],
       config: {
         // 上传图片的配置
         uploadImage: {
@@ -69,20 +79,44 @@ export default {
     };
   },
   components: {
-    VueEditor
+    VueEditor,
+    CItyAutoComp,
   },
   methods: {
-    //弹出警告框
-    open(mes) {
-      this.$message({
-        message: "警告哦，这是一条警告消息",
-        type: "warning"
-      });
+    //重新编辑草稿
+    editDraft(index){
+      var quill = this.$refs.vueEditor.editor;
+      this.city=this.$store.state.post.draft[index].city;
+      this.title=this.$store.state.post.draft[index].title;
+      this.cityname=this.$store.state.post.draft[index].cityname;
+      quill.root.innerHTML=this.$store.state.post.draft[index].content;
+      console.log('编辑器内容',quill.root.innerHTML)
+    },
+    //删除草稿
+    deleteDraft(index) {
+      console.log(123);
+      this.$store.commit('post/delDraft',index);
+    },
+    //保存到草稿
+    keepDraft(){
+       var quill = this.$refs.vueEditor.editor;
+       var data={
+         content:quill.root.innerHTML,
+         title: this.title,
+         city: this.city,
+         cityname:this.cityname
+       };
+       this.$store.commit('post/setDraft',data)
+       this.city='';
+       this.title='';
+       this.cityname='';
+       quill.root.innerHTML='';
     },
     // 发送邮寄的方法
     sendCreated() {
       var quill = this.$refs.vueEditor.editor;
-      console.log(quill.root.innerHTML);
+      console.log('评论内容',quill.root.innerHTML);
+
       if (!this.title) {
         this.$message({
           message: "标题不能为空",
@@ -90,7 +124,7 @@ export default {
         });
         return;
       }
-      if ((quill.root.innerHTML = "")) {
+      if (!quill.root.innerHTML) {
         this.$message({
           message: "描述内容不能为空",
           type: "warning"
@@ -107,15 +141,33 @@ export default {
       this.$axios({
         url: "/posts",
         method: "post",
+        headers: {
+          Authorization: `Bearer ${this.$store.state.user.userInfo.token ||
+            "NO TOKEN"}`
+        },
         data: {
           content: quill.root.innerHTML,
           title: this.title,
           city: this.city
         }
       }).then(res => {
-        console.log(res);
+         if(res.status==200) {
+             this.$message({
+             message: "评论发布成功",
+             type: "success"
+        });
+        //清空数据
+        this.city='';
+        this.title='';
+        this.cityname='';
+        quill.root.innerHTML='';
+         }
       });
-    }
+    },
+     getCity(city) {
+      console.log('city',city)
+       this.city=city;
+    },
   }
 };
 </script>
@@ -158,6 +210,7 @@ export default {
     padding: 10px;
     border: 1px solid #ddd;
     .cont {
+      padding:10px 0;
       color: #333;
       > :hover {
         color: #ffa500;
@@ -168,7 +221,18 @@ export default {
         text-overflow: ellipsis;
         white-space: nowrap;
       }
+      .del {
+        cursor: pointer;
+        font-size: 12px;
+        color:#aaa;
+      }
+      .del:hover {
+          color:#ffa500;
+        }
     }
   }
+}
+.keep-draft {
+  cursor:pointer;
 }
 </style>

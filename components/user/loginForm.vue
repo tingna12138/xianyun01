@@ -52,7 +52,7 @@ export default {
            this.$refs[formName].validate(async (valid) => {
           if (valid) {
             let loginRes=await this.$store.dispatch('user/login',this.form);
-            console.log('返回的结果',loginRes)
+            console.log(456);
                 //如果直接更改本地存储，存在一个问题：如何将本地存储中数据的变化通知header.vue组件
               //   localStorage.setItem('key',JSON.stringify(res.data));
                this.$store.commit('user/setLoginState',loginRes.data);

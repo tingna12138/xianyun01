@@ -112,11 +112,11 @@ export default {
             //第一个参数是用于循环的数组
             //第二个参数是你传进来的参数
 
-             if(this.insurances.indexOf(index)>-1) {
-                  this.insurances.splice(this.insurances.indexOf(index),1);
+             if(this.insurances.indexOf(index+1)>-1) {
+                  this.insurances.splice(this.insurances.indexOf(index+1),1);
              }
              else {
-                  this.insurances.push(index)
+                  this.insurances.push(index+1)
              }
              this.changeOrder()
 
@@ -154,6 +154,8 @@ export default {
 
         // 提交订单
         handleSubmit(){
+                    this.$router.push('/air/pay?id=1');
+
             let option={
                     users:this.passengers,
                     insurances:this.insurances,
@@ -165,7 +167,7 @@ export default {
                     air:this.$route.query.id
 
                 }
-                console.log(option);
+                console.log('订单参数',option);
             this.$axios({
                 url:'/airorders',
                 method:'post',
@@ -175,6 +177,9 @@ export default {
                 data:option
             }).then(res=>{
                 console.log(res);
+                if(res.status==200) {
+                    // this.$router.push('/air/pay?id='+res.data.data.id);
+                }
             })
         }
     }

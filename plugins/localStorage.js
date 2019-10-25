@@ -9,7 +9,7 @@ export default ({store}) => {
         key: 'yourkey',
         //定义了只将那些js文件里的数据保存到本地存储。默认是store文件夹里的所有文件
         //表示只将store文件夹下面的user.js中的数据保存到本地存储
-        paths: ['user','history']
+        paths: ['user','history','post']
     })(store)
   })
 }

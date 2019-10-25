@@ -14,9 +14,9 @@
 
 <script>
 export default {
+  props:['cityname'],
   data(){
       return {
-          cityname:'南京市',
           city:'',
           cityInfo:[],
       }
@@ -51,6 +51,7 @@ export default {
 
     //选择城市时触发
     handleSelect(item) {
+       console.log(123);
       this.city = item.id;
     }, 
      // 目标城市输入框获得失去焦点时触发

@@ -11,7 +11,7 @@
       <el-row>
         <!-- 选择城市 -->
         <el-col :span="5">
-          <CItyAutoComp @getCity="getCity"></CItyAutoComp>
+          <CItyAutoComp @getCity="getCity" cityname="南京市"></CItyAutoComp>
         </el-col>
 
         <!-- 入住时间段 -->
@@ -86,10 +86,11 @@
             <el-col :span="3">区域：</el-col>
             <el-col :span="21">
               <p :class="{'limit-h':flag}">
-                 <span class="all">全部</span>  &nbsp; &nbsp;&nbsp;
-               <span v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]" :key="index"> 
-                 {{item.name}} &nbsp; &nbsp;&nbsp;
-              </span>
+                <span class="all">全部</span> &nbsp; &nbsp;&nbsp;
+                <span
+                  v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]"
+                  :key="index"
+                >{{item.name}} &nbsp; &nbsp;&nbsp;</span>
               </p>
               <p>
                 <span class="el-icon-d-arrow-right yellow" @click="moreSceni"></span>
@@ -102,10 +103,11 @@
             <el-col :span="3">攻略：</el-col>
             <el-col :span="21">
               <p :class="{'limit-h':flag}">
-                 <span class="all">全部</span>  &nbsp; &nbsp;&nbsp;
-               <span v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]" :key="index"> 
-                 {{item.name}} &nbsp; &nbsp;&nbsp;
-              </span>
+                <span class="all">全部</span> &nbsp; &nbsp;&nbsp;
+                <span
+                  v-for="(item,index) in citydesc.length>0 ? citydesc[0].scenics :[]"
+                  :key="index"
+                >{{item.name}} &nbsp; &nbsp;&nbsp;</span>
               </p>
               <p>
                 <span class="el-icon-d-arrow-right yellow" @click="moreSceni"></span>
@@ -116,9 +118,7 @@
           <!-- 均价 -->
           <el-row class="left-row">
             <el-col :span="3">均价:</el-col>
-            <el-col :span="21">
-              这是均价部分
-            </el-col>
+            <el-col :span="21">这是均价部分</el-col>
           </el-row>
         </el-col>
         <!-- 酒店地图 -->
@@ -147,12 +147,17 @@
           <p class="desc">
             <span class="price-desc">{{item.des}}</span>
           </p>
-          <el-dropdown @command="command">
+          <el-dropdown @command="command" trigger="click">
             <span class="el-dropdown-link">
-              下拉菜单
-              <i class="el-icon-arrow-down el-icon--right"></i>
+              {{key=="assets" ? assets : ''}}
+              {{key=="brands" ? brands : ''}}
+              {{key=="levels" ? levels : ''}}
+              {{key=="types" ? types : ''}}
+              <i
+                class="el-icon-arrow-down el-icon--right"
+              ></i>
             </span>
-            <el-dropdown-menu slot="dropdown">
+            <el-dropdown-menu slot="dropdown" class="drop-menu">
               <el-dropdown-item
                 icon="el-icon-circle-check"
                 :command="key+':'+item1.id"
@@ -170,12 +175,11 @@
     <HotelList class="hotel-list" v-for="(item,index) in hotellist" :key="index" :hotel="item"></HotelList>
 
     <!-- //没有数据时显示 -->
-    <div v-if="hotellist.length==0"> 没有满足条件的酒店数据</div>
+    <div v-if="hotellist.length==0" class="none-data">没有满足条件的酒店数据</div>
 
     <!-- 分页标签 -->
     <!-- 页码尺寸默认是10 -->
-    <el-pagination small layout="prev, pager, next" 
-       :total="total" @current-change="changePage"></el-pagination>
+    <el-pagination small layout="prev, pager, next" :total="total" @current-change="changePage"></el-pagination>
   </div>
 </template>
 
@@ -208,6 +212,10 @@ export default {
       citydesc:[],
       enterTime:null,
       leftTime:null,
+      assets:'',
+      brands:'',
+      levels:'',
+      types:'',
       form: {
         enterTime:null,
         leftTime:null,
@@ -289,12 +297,31 @@ export default {
         this.hotellist = res.data.data;
         this.total=res.data.total
         console.log('酒店列表',this.hotellist);
+        if(this.hotellist.length>0){
+          this.loadMap();
+        }
+        else {
+            window.onLoad = () => {
+            var map = new AMap.Map("container", {
+            center: [115.4267, 39.0533],
+             zoom: 6
+             }); }
+              var url ="https://webapi.amap.com/maps?v=1.4.15&key=468308d6c66b304b46765af3bd907d2d&callback=onLoad";
+              var jsapi = document.createElement("script");
+              jsapi.charset = "utf-8";
+              jsapi.src = url;
+              document.head.appendChild(jsapi);
+
+        }
       }
     });
       }
     }
   },
   mounted() {
+
+
+
     this.$axios({
       //获取酒店数据
       url: "/hotels",
@@ -304,6 +331,8 @@ export default {
         this.hotellist = res.data.data;
         this.total=res.data.total
         console.log('酒店列表',this.hotellist);
+         //页面加载完成，加载地图
+         this.loadMap();
       }
     });
     //获取酒店选项
@@ -312,6 +341,7 @@ export default {
       method: "get"
     }).then(res => {
       this.hoteloptions = res.data.data;
+      console.log('酒店选项',this.hoteloptions);
       for (var key in this.hoteloptions) {
         if (key == "assets") {
           this.hoteloptions[key].des = "酒店设施";
@@ -333,12 +363,15 @@ export default {
       console.log('城市介绍',res.data.data);
       this.citydesc=res.data.data;
     })
-  
-    //酒店地图
+  },
+  methods: {
+    //加载地图
+     loadMap(){
+        //酒店地图
     window.onLoad = () => {
       var map = new AMap.Map("container", {
-        center: [118.778611, 32.04389],
-        zoom: 11
+        center: [this.hotellist[0].location.longitude, this.hotellist[0].location.latitude],
+        zoom: 6
       });
       var markers = [];
 
@@ -371,8 +404,8 @@ export default {
     jsapi.charset = "utf-8";
     jsapi.src = url;
     document.head.appendChild(jsapi);
-  },
-  methods: {
+     },
+
     //点击 查看价格  触发
     onSubmit() {
      this.form.enterTime=this.enterTime;
@@ -417,12 +450,18 @@ export default {
       console.log('arr',arr);
       if (arr[0] == "levels") {
         this.form.hotellevel_in = +arr[1];
+        this.levels=arr[1]+'星'
       } else if (arr[0] == "brands") {
         this.form.hotelbrand_in = +arr[1];
+        this.brands=this.hoteloptions.brands[arr[1]-4].name;
+
       } else if (arr[0] == "assets") {
         this.form.hotelasset_in = +arr[1];
+        this.assets=this.hoteloptions.assets[arr[1]-1].name;
+
       } else if (arr[0] == "types") {
         this.form.hoteltype_in = +arr[1];
+        this.types=this.hoteloptions.types[arr[1]-1].name;
       }
     },
 
@@ -442,12 +481,16 @@ export default {
 </script>
 
 <style scoped lang="less">
+.drop-menu{
+  height:202px;
+  overflow-y: scroll;
+}
 .limit-h {
   height: 42px;
   overflow: hidden;
 }
 .yellow {
-  color:#ffa500;
+  color: #ffa500;
 }
 /deep/.custom-content-marker {
   position: relative;
@@ -554,15 +597,14 @@ export default {
 // 城市介绍部分开始
 .scen-descr {
   margin-top: 30px;
-  border: 1px solid red;
   .left-row {
     margin-bottom: 30px;
     padding-right: 20px;
     font-size: 14px;
     color: #666666;
     .all {
-      padding:2px;
-      color:#777;
+      padding: 2px;
+      color: #777;
       font-size: 12px;
       background: #ddd;
       border-radius: 2px;
@@ -622,38 +664,45 @@ export default {
 .hotel-list {
   margin-top: 30px;
 }
+//没有数据时后显示
+.none-data {
+  margin:0 auto 20px;
+  padding:30px 0;
+  text-align: center;
+  border:1px solid #ddd;
+  color:#ecc478;
+}
 
 //分页标签
 .el-pagination {
-  float:right;
-  margin-top:20px;
-   /deep/.el-pager {
-   li {
-     color:#409eff;
-   }
-   li.active {
-  color:#ddd;
-   }
-}
-//上一页按钮
-/deep/.btn-prev {
-  color:#999;
-  border:1px solid #ddd;
-  >::after{
-    content:'上一页';
-    margin-left: 5px;
+  float: right;
+  margin-top: 20px;
+  /deep/.el-pager {
+    li {
+      color: #409eff;
+    }
+    li.active {
+      color: #ddd;
+    }
+  }
+  //上一页按钮
+  /deep/.btn-prev {
+    color: #999;
+    border: 1px solid #ddd;
+    > ::after {
+      content: "上一页";
+      margin-left: 5px;
+    }
+  }
+  //下一页按钮
+
+  /deep/.btn-next {
+    color: #999;
+    border: 1px solid #ddd;
+    > ::before {
+      content: "下一页 \e6e0";
+      margin-left: 5px;
+    }
   }
 }
-//下一页按钮
-
-/deep/.btn-next {
-  color:#999;
-  border:1px solid #ddd;
-  >::before{
-    content:'下一页 \e6e0';
-    margin-left: 5px;
-  }
-}
-}
-
 </style>

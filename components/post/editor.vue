@@ -46,12 +46,12 @@ data(){
 components: {
   VueEditor
 },
-watch:{
-   $refs.vueEditor.editor(){
-     var quill = this.$refs.vueEditor.editor;
-    console.log(quill.root.innerHTML);
-   }
-},
+// watch:{
+//    $refs.vueEditor.editor(){
+//      var quill = this.$refs.vueEditor.editor;
+//     console.log(quill.root.innerHTML);
+//    }
+// },
 methods:{
   get(){
     var quill = this.$refs.vueEditor.editor;

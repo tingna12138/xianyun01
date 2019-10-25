@@ -1,9 +1,10 @@
 <template>
   <div>
   <el-upload
-     action="#"
-  list-type="picture-card"
-  :auto-upload="false">
+     :action="$axios.defaults.baseURL+'/upload'"
+     name="files"
+    list-type="picture-card"
+    :on-success	="upSuccess">
     <i slot="default" class="el-icon-plus"></i>
     <div slot="file" slot-scope="{file}">
       <img
@@ -46,12 +47,14 @@ export default {
       return {
         dialogImageUrl: '',
         dialogVisible: false,
-        disabled: false
+        disabled: false,
+        pics:[],
       };
     },
     methods: {
       handleRemove(file) {
         console.log(file);
+
       },
       handlePictureCardPreview(file) {
         this.dialogImageUrl = file.url;
@@ -59,6 +62,14 @@ export default {
       },
       handleDownload(file) {
         console.log(file);
+         console.log(3)
+      },
+      //文件添加成功
+      //response是我们想要的数据
+      upSuccess(response, file, fileList) {
+        this.pics.push(response[0])
+        this.$emit('click',this.pics)
+        console.log('图片上传成功',response[0])
       }
     }
 }
