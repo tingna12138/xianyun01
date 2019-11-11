@@ -1,5 +1,6 @@
 <template>
   <div class="container clearfix">
+    <!-- 我在酒店首页加了一行注释 ，作为git版本管理的测试-->
     <!-- 面包屑导航 -->
     <h4>
       酒店
