@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    <div style="width:100%;height:1px;background-color:black"></div>
+    <script>
+        //去除字符串开头和结尾的空格
+        function delate(str){
+             // 匹配到开头的空格，然后将其替换为空，返回新字符串str1
+             let str1 = str.replace(/\s+$/,'');    
+             // 返回str2
+      
+             let str2 = str1.replace(/^\s+/,'')
+             return str2;
+         }
+         console.log(123,delate(' test  '),456)
+    </script>
+
+    <script>
+       //清除网页缓存数据
+       //网址：https://www.cnblogs.com/zhanglw456/p/11692809.html
+    </script>
+</body>
+</html>
